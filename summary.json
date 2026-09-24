@@ -1,0 +1,11 @@
+{
+  "load": {
+    "error": "missing jtl"
+  },
+  "stress": {
+    "error": "missing jtl"
+  },
+  "spike": {
+    "error": "missing jtl"
+  }
+}
