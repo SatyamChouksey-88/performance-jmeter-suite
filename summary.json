@@ -1,11 +1,23 @@
 {
   "load": {
-    "error": "missing jtl"
+    "samples": 25,
+    "avg_ms": 66.6,
+    "p95_ms": 97,
+    "max_ms": 546,
+    "error_pct": 0.0
   },
   "stress": {
-    "error": "missing jtl"
+    "samples": 60,
+    "avg_ms": 49.8,
+    "p95_ms": 91,
+    "max_ms": 340,
+    "error_pct": 0.0
   },
   "spike": {
-    "error": "missing jtl"
+    "samples": 50,
+    "avg_ms": 70.3,
+    "p95_ms": 194,
+    "max_ms": 359,
+    "error_pct": 0.0
   }
 }
