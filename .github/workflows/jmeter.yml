@@ -1,0 +1,111 @@
+name: JMeter Performance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: jmeter-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  jmeter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run load / stress / spike plans (modest concurrency)
+        run: |
+          mkdir -p results report/load report/stress report/spike
+          docker run --rm -v "$PWD:/tests" -w /tests justb4/jmeter:5.6 \
+            -n -t plans/load-test.jmx -l results/load.jtl -e -o report/load
+          docker run --rm -v "$PWD:/tests" -w /tests justb4/jmeter:5.6 \
+            -n -t plans/stress-test.jmx -l results/stress.jtl -e -o report/stress
+          docker run --rm -v "$PWD:/tests" -w /tests justb4/jmeter:5.6 \
+            -n -t plans/spike-test.jmx -l results/spike.jtl -e -o report/spike
+
+      - name: Summarize results
+        if: always()
+        run: |
+          python3 <<'PY'
+          import csv, pathlib, statistics, json
+          out = {}
+          for name in ("load", "stress", "spike"):
+              path = pathlib.Path(f"results/{name}.jtl")
+              if not path.exists():
+                  out[name] = {"error": "missing jtl"}
+                  continue
+              elapsed, codes = [], []
+              with path.open(newline="", encoding="utf-8") as f:
+                  reader = csv.DictReader(f)
+                  for row in reader:
+                      try:
+                          elapsed.append(int(row["elapsed"]))
+                          codes.append(row.get("responseCode", ""))
+                      except Exception:
+                          pass
+              if not elapsed:
+                  out[name] = {"error": "empty"}
+                  continue
+              elapsed_sorted = sorted(elapsed)
+              p95 = elapsed_sorted[int(0.95 * (len(elapsed_sorted) - 1))]
+              errors = sum(1 for c in codes if c and not c.startswith("2"))
+              out[name] = {
+                  "samples": len(elapsed),
+                  "avg_ms": round(statistics.mean(elapsed), 1),
+                  "p95_ms": p95,
+                  "max_ms": max(elapsed),
+                  "error_pct": round(100 * errors / len(elapsed), 2),
+              }
+          pathlib.Path("results/summary.json").write_text(json.dumps(out, indent=2))
+          print(json.dumps(out, indent=2))
+          PY
+
+      - name: Upload results artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jmeter-results
+          path: |
+            results/
+            report/
+          retention-days: 14
+
+      - name: Build Pages index
+        if: always() && github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p site
+          cp -r report/load site/load
+          cp -r report/stress site/stress
+          cp -r report/spike site/spike
+          cp results/summary.json site/summary.json
+          cat > site/index.html <<'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head><meta charset="utf-8"><title>JMeter dashboards</title></head>
+          <body>
+            <h1>performance-jmeter-suite</h1>
+            <p>Modest ReqRes plans (peak ≤ 25 users) respecting free-tier daily budget.</p>
+            <ul>
+              <li><a href="load/index.html">Load test dashboard</a></li>
+              <li><a href="stress/index.html">Stress test dashboard</a></li>
+              <li><a href="spike/index.html">Spike test dashboard</a></li>
+              <li><a href="summary.json">summary.json</a></li>
+            </ul>
+          </body>
+          </html>
+          HTML
+
+      - name: Publish dashboards to GitHub Pages
+        if: always() && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: site

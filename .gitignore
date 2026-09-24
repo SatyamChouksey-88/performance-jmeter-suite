@@ -1,0 +1,9 @@
+target/
+results/*.jtl
+.idea/
+.vscode/
+.DS_Store
+*.log
+.env
+.jmeter/
+site/
