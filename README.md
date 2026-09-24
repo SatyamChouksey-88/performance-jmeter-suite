@@ -40,13 +40,15 @@ Workflow [`.github/workflows/jmeter.yml`](.github/workflows/jmeter.yml) runs all
 
 ## Results
 
-*Populated from the first green CI run — do not invent numbers.* After CI finishes, see `results/summary.json` on the Pages site and the HTML dashboards linked above.
+From CI run on **2026-09-24** (`summary.json` artifact / Pages). Peak concurrency **25 users**; **0% errors** across all three plans.
 
-| Plan | Samples | Avg (ms) | p95 (ms) | Error % |
-|---|---|---|---|---|
-| Load | _pending CI_ | | | |
-| Stress | _pending CI_ | | | |
-| Spike | _pending CI_ | | | |
+| Plan | Samples | Avg (ms) | p95 (ms) | Max (ms) | Error % |
+|---|---|---|---|---|---|
+| Load (5 users) | 25 | 66.6 | 97 | 546 | 0.0 |
+| Stress (20 users) | 60 | 49.8 | 91 | 340 | 0.0 |
+| Spike (25 users) | 50 | 70.3 | 194 | 359 | 0.0 |
+
+Interpretation: at this modest scale against ReqRes, p95 stayed under **200 ms** even on the spike plan; no HTTP failures. These numbers are evidence of the harness, not a claim about ReqRes production capacity.
 
 ## Author & license
 
