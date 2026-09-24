@@ -23,11 +23,11 @@ jobs:
       - name: Run load / stress / spike plans (modest concurrency)
         run: |
           mkdir -p results report/load report/stress report/spike
-          docker run --rm -v "$PWD:/tests" -w /tests justb4/jmeter:5.6 \
+          docker run --rm -v "$PWD:/tests" -w /tests justb4/jmeter:5.5 \
             -n -t plans/load-test.jmx -l results/load.jtl -e -o report/load
-          docker run --rm -v "$PWD:/tests" -w /tests justb4/jmeter:5.6 \
+          docker run --rm -v "$PWD:/tests" -w /tests justb4/jmeter:5.5 \
             -n -t plans/stress-test.jmx -l results/stress.jtl -e -o report/stress
-          docker run --rm -v "$PWD:/tests" -w /tests justb4/jmeter:5.6 \
+          docker run --rm -v "$PWD:/tests" -w /tests justb4/jmeter:5.5 \
             -n -t plans/spike-test.jmx -l results/spike.jtl -e -o report/spike
 
       - name: Summarize results

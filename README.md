@@ -30,7 +30,7 @@ jmeter -n -t plans/load-test.jmx -l results/load.jtl -e -o report/load
 Or with Docker (same image as CI):
 
 ```bash
-docker run --rm -v "$PWD:/tests" -w /tests justb4/jmeter:5.6 \
+docker run --rm -v "$PWD:/tests" -w /tests justb4/jmeter:5.5 \
   -n -t plans/load-test.jmx -l results/load.jtl -e -o report/load
 ```
 
